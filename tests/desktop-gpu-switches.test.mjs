@@ -58,6 +58,24 @@ test('a Wayland session runs through XWayland, because Chromium cannot present V
   assert.equal(gpuSwitches({platform: 'linux', env: {DISPLAY: ':0'}}).ozone, null, 'an X11 session needs nothing');
   assert.equal(gpuSwitches({platform: 'linux', env: {...wayland, DISPLAY: ''}}).ozone, null, 'no XWayland to fall back to');
   assert.equal(gpuSwitches({platform: 'linux', env: {...wayland, STYK_WAYLAND: '1'}}).ozone, null, 'native Wayland can be kept');
+  assert.equal(gpuSwitches({platform: 'linux', env: {...wayland, ELECTRON_OZONE_PLATFORM_HINT: 'wayland'}}).ozone, null, 'the desktop\'s hint keeps Wayland');
+  assert.equal(gpuSwitches({platform: 'linux', env: {...wayland, ELECTRON_OZONE_PLATFORM_HINT: 'x11'}}).features[0], 'Vulkan', 'an x11 hint needs no relaunch');
+});
+
+test('a window that stays on native Wayland never gets Vulkan, which loses its GPU device over and over there', () => {
+  const wayland = {XDG_SESSION_TYPE: 'wayland', WAYLAND_DISPLAY: 'wayland-0', DISPLAY: ':0'};
+  const none = {switches: [], features: [], ozone: null};
+  // Omarchy's Hyprland defaults set the hint for every Electron app.
+  for (const hint of ['wayland', 'auto']) assert.deepEqual(gpuSwitches({platform: 'linux', env: {...wayland, ELECTRON_OZONE_PLATFORM_HINT: hint}}), none, `the ${hint} hint`);
+  assert.deepEqual(gpuSwitches({platform: 'linux', env: {...wayland, STYK_WAYLAND: '1'}}), none);
+  assert.deepEqual(gpuSwitches({platform: 'linux', env: {...wayland, DISPLAY: ''}}), none, 'no XWayland');
+  for (const flags of [['--ozone-platform=wayland'], ['--ozone-platform', 'wayland']]) {
+    assert.deepEqual(gpuSwitches({platform: 'linux', env: wayland, argv: ['/e/electron', '.', ...flags]}), none, flags.join(' '));
+  }
+  // The copy relaunched under XWayland, and an X11 session, keep Vulkan.
+  assert.deepEqual(gpuSwitches({platform: 'linux', env: wayland, argv: ['/e/electron', '--ozone-platform=x11', '.']}).features, ['Vulkan']);
+  assert.deepEqual(gpuSwitches({platform: 'linux', env: {DISPLAY: ':0'}, argv: ['/e/electron', '.']}).features, ['Vulkan']);
+  assert.deepEqual(gpuSwitches({platform: 'linux', env: {...wayland, STYK_WAYLAND: '1', STYK_GPU_UNSAFE: '1'}}).switches, ['enable-unsafe-webgpu'], 'forcing the opt-in still works');
   assert.equal(gpuSwitches({platform: 'linux', env: {...wayland, STYK_GPU_UNSAFE: '0'}}).ozone, null, 'no Vulkan, no need');
   assert.equal(gpuSwitches({platform: 'win32', env: wayland}).ozone, null);
 });

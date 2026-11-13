@@ -30,6 +30,7 @@ What's new in each version of StykAnimate.
 
 ### Fixed
 
+- The canvas no longer flashes "The graphics device was reset" on Linux Wayland desktops such as Omarchy.
 - Fixed Home missing open projects and their pictures when opened through a linked folder.
 - Moving a figure shows its new position immediately.
 - The canvas no longer stays empty when graphics fail to start at launch: StykAnimate tries again on its own.

@@ -14,10 +14,17 @@ Vulkan feature and the WebGPU opt-in on Linux before Electron starts, merging an
 
 On a Wayland desktop with XWayland available, ordinary startup automatically
 relaunches through X11 so the window can display Vulkan-backed content. No extra
-flags are needed for `npm start` or the packaged app. An explicit
-`--ozone-platform` launch argument takes precedence; Electron's internally
-selected platform does not. `STYK_WAYLAND=1` keeps native Wayland; combine it
-with `STYK_GPU_UNSAFE=0` to draw with WebGL2.
+flags are needed for `npm start` or the packaged app. Electron's internally
+selected platform does not count as a choice.
+
+The window stays on native Wayland, without Vulkan, when any of these hold:
+an explicit `--ozone-platform=wayland` launch argument, `STYK_WAYLAND=1`, an
+`ELECTRON_OZONE_PLATFORM_HINT` of `wayland` or `auto` (desktops such as
+Omarchy set it for every Electron app; XWayland would not follow each
+monitor's scaling there), or no XWayland. Chromium cannot present Vulkan on a
+Wayland surface: with Vulkan on, the canvas's GPU device is lost again after
+every reconnect and the stage flashes "The graphics device was reset". Without
+it, the engine draws with WebGL2 on the GPU, sharp at every monitor's scale.
 
 - `STYK_GPU_UNSAFE=0` leaves Chromium's own driver allowlist untouched (use it to
   diagnose a driver problem; the engine then draws with WebGL2 where Chromium offers no WebGPU).

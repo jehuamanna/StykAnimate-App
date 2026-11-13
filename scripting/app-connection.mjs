@@ -64,6 +64,8 @@ export function createAppConnection({port = Number(process.env.STYK_SCRIPTING_PO
     child = spawn(electron, ['.', '--styk-developer'], {cwd: root, stdio: 'ignore', detached: false, windowsHide: false, shell: process.platform === 'win32',
       env: {...process.env, STYK_USER_DATA_DIR: data, STYK_LIBRARY_DIR: path.join(data, 'library'), STYK_REMOTE_DEBUGGING_PORT: String(port), STYK_STARTUP_VIEW: 'editor'}});
     child.once('exit', () => { child = null; session = null; });
+    // The window outlives the server (README: it keeps unsaved work), so the server does not wait for it to close.
+    child.unref();
     return attach(port, {child, timeoutMs: 90000});
   }
 

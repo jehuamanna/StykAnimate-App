@@ -130,6 +130,10 @@ A request is `{id, op, args?, detail?: "short" | "full"}`. The answer is `{id, o
 
 There is deliberately no operation that runs arbitrary code: the browser inspector is there for that.
 
+Scripting goes through that inspector too: `scripting/` (an MCP server and a scripting library for making animations
+from code or from Claude Code) attaches to a developer launch over `STYK_REMOTE_DEBUGGING_PORT` and never uses this
+channel. See `scripting/README.md`.
+
 `node scripts/styk-dev.mjs <op> [json]` is the client. `trace.save '{"path": "x.json"}'` stops a capture and writes
 the Perfetto file.
 

@@ -91,6 +91,8 @@
      */
     async newDocument({width = 960, height = 540, fps: rate = 24, frames = 24, keepFigure = false} = {}) {
       const before = app().editor?.report;
+      // Each new project opens beside one with unsaved work, up to the app's limit of open projects.
+      if (app().projects?.canOpen?.() === false) fail('Too many projects are open: export what you need, then close some (each new document opens in its own tab while the open one has unsaved changes).');
       await app().actions.new();
       if (app().editor.report === before) fail('A new project could not be opened (is a dialog open?).');
       const e = ed();
